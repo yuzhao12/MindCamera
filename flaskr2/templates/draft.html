@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
+	<link href="{{url_for('static',filename='assets/css/bootstrap.min.css')}}" rel="stylesheet">
+	<link href="{{url_for('static',filename='dist/cropper.min.css')}}" rel="stylesheet">
+	<link href="{{url_for('static',filename='example/crop-avatar/css/main.css')}}" rel="stylesheet">
+	<script src="{{url_for('static',filename='assets/js/jquery.min.js')}}"></script>
+	<script src="{{url_for('static',filename='assets/js/bootstrap.min.js')}}"></script>
+	<script src="{{url_for('static',filename='dist/cropper.min.js')}}"></script>
+	<script src="{{url_for('static',filename='example/crop-avatar/js/main1.js')}}"></script>
+	<script src="{{url_for('static',filename='example/crop-avatar/js/jtopo-min.js')}}"></script>
+
+	<style>
+		*{margin:0;padding:0;}
+		.fa{width:740px;margin:10px auto;}
+		.top{margin:20px 0;}
+		.top input{width:25px;height:25px;border:1px solid #fff;border-radius:4px;background:#ddd;}
+		.top .i1{background:#000000;}
+		.top .i2{background:#FF0000;}
+		.top .i3{background:#80FF00;}
+		.top .i4{background:#00FFFF;}
+		.top .i5{background:#808080;}
+		.top .i6{background:#FF8000;}
+		.top .i7{background:#408080;}
+		.top .i8{background:#8000FF;}
+		.top .i9{background:#CCCC00;}
+		#canvas{background:#eee;cursor:default;}
+		.font input{font-size:14px;}
+		.top .grea{background:#aaa;}
+		#color{margin-bottom:10px;}
+		#font{margin-bottom:10px;}
+		.eraser{margin-bottom:10px;}
+		#resultArea img{border:1px solid #008800;}
+	</style>
+</head>
+<body style="width=100%;">
+<div id = "load">
+</div>
+<nav class="navbar navbar-inverse" style="margin-bottom:0px;">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+     <!-- <a class="navbar-brand" href="http://int.bupt.edu.cn/content/content.php?p=2_6_10">北京邮电大学网络智能中心</a>-->
+	 <span class="navbar-brand">Beijing University of Posts and Telecommunications</span>
+    </div>
+	<span class="navbar-brand"><p>Picture fusion system</p></span>
+  </div><!-- /.container-fluid -->
+</nav>
+  <div class="jumbotron" style='width:100%;'>
+    <h3 align='center'>Image Access</h3>
+	<div class="fa" style="margin:0 auto;">
+		<div class="top">
+
+			<div id="color">
+				Please select the brush color:
+				<input class="i1" type="button" value="" />
+				<input class="i2" type="button" value="" />
+				<input class="i3" type="button" value="" />
+				<input class="i4" type="button" value="" />
+				<input class="i5" type="button" value="" />
+				<input class="i6" type="button" value="" />
+				<input class="i7" type="button" value="" />
+				<input class="i8" type="button" value="" />
+				<input class="i9" type="button" value="" />
+			</div>
+			<div class="font" id="font">
+				Please select the width of the brush:(S for small,M for medium, L for large)
+				<input type="button" value="S" class="grea"/>
+				<input type="button" value="M" />
+				<input type="button" value="L" />
+			</div>
+			<div class="eraser">
+				<span id="error">If there is an error, use an eraser:</span>
+				<input id="eraser" style="width:60px;font-size:14px;"type="button" value="eraser" />
+			</div>
+			<input id="clear" type="button" value="Clear" style="width:80px;"/>
+			
+			<input id="getImgs" type="button" value="Search" style="width:80px;"/>
+			<input id="reloadImgs" type="button" value="Re-painting" onclick="window.location.reload();" style="width:80px;"/>
+		</div>
+
+	<div>
+      <form>
+        <input type="radio" name="colors" id="background" value="background">background
+        <input type="radio" name="colors" id="good" value="good">object
+      </form>
+      <div id="backgroundArea" style="display:none;">
+        <span>Double-click on the canvas to input the content you want to search&nbsp;<i>OR</i>&nbsp;&nbsp;</span>
+      	<input type="file" name="imgOne1" id="imgOne1" onmousedown="showlocal()" onchange="preImg(this.id,'imgPre');"  value="local access image" style="width:75px ; display: inline;"/>
+	</div>
+      <div id="goodArea" style="display:none;">
+        <span>Double-click on the canvas to input the content you want to search&nbsp;<i>OR</i>&nbsp;&nbsp;</span>
+        <button title="Add the drawing area" id="add">Add</button>
+	<span>&nbsp;<i>OR</i>&nbsp;</span>
+      	<input type="file" name="imgOne" id="imgOne" onmousedown="showlocalA()" onchange="preImg(this.id,window.oID);"  value="local access image" style="width:75px ; display: inline;"/>
+	</div>
+    </div>
+
+
+    <div style="margin-top: 10px;">
+      <canvas id="canvas" width="640px" height="300px" style="border:1px solid;">Your pathetic browser does not support Canvas.</canvas>
+      <canvas id="canvas2" width="640px" height="300px" style="border:ipx solid;display: none">Your pathetic browser does not support Canvas.</canvas>
+    <canvas id="canvas3" width="120px" height="200px" style="border:ipx solid;display: none">Your pathetic browser does not support Canvas.</canvas>
+	</div>
+
+		<div id="resultArea"></div>
+    <div id="inputArea" style="z-index: 999;position: absolute; display: none">
+      <input id="input">
+    </div>
+	</div>
+</div>
+<div class="container" id="crop-avatar">
+		<h3 text-align='center'>Combine Result Section</h3>
+	<div id="combineImg">
+	</div>
+		<h3 text-align='center'>Crop Result Section</h3>
+	<div id="crop_result">
+	</div>
+	
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4>Further modify</h4>
+				</div>
+				<div class="modal-body">
+						<div class="row" id="row1">
+								<img src="" style="position:absolute; left:0px; top:0px;" id="Furtherimg"/>	
+								<canvas texsrc="" imgsrc="" style="position:absolute;left:0px; top:0px;background: transparent;" id="myCanvas" width="" height="">
+									Your pathetic browser does not support Canvas.
+								</canvas>
+								<input id="Furtherclear" type="button" value="eraser"/>
+								<input id="Furtherpaint" type="button" value="paint"/>
+						</div>
+						<div class="row">
+							<div class="col-md-9">
+							<div class="btn-group">
+								
+							</div>
+							<div class="btn-group">
+
+							</div>
+							</div>
+							<div class="col-md-3">
+								<button type="button" id = "FurtherDone" class="btn btn-primary btn-block">Done</button>
+							</div>
+						</div>
+					
+				</div>
+
+			</div>
+		</div>
+	</div>
+	
+
+	
+		<h3 text-align='center'>Material Section</h3>
+		<h4>(Warning:The background can only select from one group)</h4>
+	<div id="resultArea_front">
+	</div>
+	<!-- Cropping modal -->
+    <div class="modal fade" id="avatar-modal" aria-hidden="true" aria-labelledby="avatar-modal-label" role="dialog" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form class="avatar-form" action="/flaskr2/getdata" enctype="multipart/form-data" method="post">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title" id="avatar-modal-label">Crop Image</h4>
+            </div>
+            <div class="modal-body">
+              <div class="avatar-body">
+
+                <!-- Upload image and data -->
+                <div class="avatar-upload">
+                  <!--<input type="hidden" class="avatar-src" name="avatar_src">-->
+				  <input type="hidden" class="avatar-src" name="avatar_src">
+                  <input type="hidden" class="avatar-data" name="avatar_data">
+                  <input type="button" class="avatar-input" id="avatarInput" value="Display Object"/>
+                </div>
+
+                <!-- Crop and preview -->
+                <div class="row">
+                  <div class="col-md-9">
+                    <div class="avatar-wrapper"></div>
+                  </div> 
+                  <div class="col-md-3">
+                    <div class="avatar-preview preview-lg"></div>
+                    <div class="avatar-preview preview-md"></div>
+                    <div class="avatar-preview preview-sm"></div>
+                  </div>
+                 </div>
+                <div class="row avatar-btns">
+                  <div class="col-md-9">
+                    <div class="btn-group">
+                     
+                    </div>
+                    <div class="btn-group">
+                     
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <button data-toggle="modal" data-target="#myModal" type="submit" class="btn btn-primary btn-block avatar-save">Done</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div> -->
+          </form>
+        </div>
+      </div>
+    </div><!-- /.modal -->
+    <!-- loading1 state -->
+	<div id="loadingA" class="loading" aria-label="loading" role="img" tabindex="-1"></div>
+	
+</div>
+
+
+
+<script>
+	var draw = function(){(function(){
+		var paint={
+			init:function()
+			{
+				this.load();
+
+			},
+			load:function()
+			{
+				this.x=[];//记录鼠标移动时的X坐标
+				this.y=[];//记录鼠标移动时的Y坐标
+				this.clickDrag=[];
+				this.lock=false;//鼠标移动前，判断鼠标是否按下
+				this.isEraser=false;
+				//this.Timer=null;//橡皮擦启动计时器
+				//this.radius=5;
+				this.storageColor="#000000";
+				this.eraserRadius=15;//擦除半径值
+				this.color=["#000000","#FF0000","#80FF00","#00FFFF","#808080","#FF8000","#408080","#8000FF","#CCCC00"];//画笔颜色值
+				this.fontWeight=[1,5,8];
+				this.$=function(id){return typeof id=="string"?document.getElementById(id):id;};
+				this.canvas=this.$("canvas");
+				if (this.canvas.getContext) {
+				} else {
+					alert("您的浏览器不支持 canvas 标签");
+					return;
+				}
+				this.cxt=this.canvas.getContext('2d');
+				this.cxt.lineJoin = "round";//context.lineJoin - 指定两条线段的连接方式
+				this.cxt.lineWidth = 1;//线条的宽度
+				this.iptClear=this.$("clear");
+				this.revocation=this.$("revocation");
+				this.imgurl=this.$("imgurl");//图片路径按钮
+				this.w=this.canvas.width;//取画布的宽
+				this.h=this.canvas.height;//取画布的高
+			   // this.cxt.fillStyle = "#fff";
+			   // this.cxt.fillRect(0, 0, this.w, this.h);
+				this.touch =("createTouch" in document);//判定是否为手持设备
+				this.StartEvent = this.touch ? "touchstart" : "mousedown";//支持触摸式使用相应的事件替代
+			 this.MoveEvent = this.touch ? "touchmove" : "mousemove";
+			 this.EndEvent = this.touch ? "touchend" : "mouseup";
+			 this.bind();
+			},
+			bind:function()
+			{
+				var t=this;
+				/*清除画布*/
+				this.iptClear.onclick=function()
+				{
+					t.clear();
+          $("#count").val("1");
+				};
+				/*鼠标按下事件，记录鼠标位置，并绘制，解锁lock，打开mousemove事件*/
+				this.canvas['on'+t.StartEvent]=function(e)
+				{
+					var touch=t.touch ? e.touches[0] : e;
+					var _x=touch.clientX - touch.target.offsetLeft;//鼠标在画布上的x坐标，以画布左上角为起点
+					var _y=touch.clientY - touch.target.offsetTop + document.body.scrollTop;//鼠标在画布上的y坐标，以画布左上角为起点
+					if(t.isEraser)
+					{
+					/*
+						t.cxt.globalCompositeOperation = "destination-out";
+						t.cxt.beginPath();
+						t.cxt.arc(_x, _y,t.eraserRadius, 0, Math.PI * 2);
+						t.cxt.strokeStyle = "rgba(250,250,250,0)";
+						t.cxt.fill();
+						t.cxt.globalCompositeOperation = "source-over";
+						*/
+						t.resetEraser(_x,_y,touch);
+					}else
+					{
+						t.movePoint(_x,_y);//记录鼠标位置
+						t.drawPoint();//绘制路线
+					}
+					t.lock=true;
+				};
+				/*鼠标移动事件*/
+				this.canvas['on'+t.MoveEvent]=function(e)
+				{
+					var touch=t.touch ? e.touches[0] : e;
+					if(t.lock)//t.lock为true则执行
+					{
+						var _x=touch.clientX - touch.target.offsetLeft;//鼠标在画布上的x坐标，以画布左上角为起点
+						var _y=touch.clientY - touch.target.offsetTop + document.body.scrollTop;//鼠标在画布上的y坐标，以画布左上角为起点
+						if(t.isEraser)
+						{
+							//if(t.Timer)clearInterval(t.Timer);
+							//t.Timer=setInterval(function(){
+								t.resetEraser(_x,_y,touch);
+							//},10);
+						}
+						else
+						{
+							t.movePoint(_x,_y,true);//记录鼠标位置
+							t.drawPoint();//绘制路线
+						}
+					}
+				};
+				this.canvas['on'+t.EndEvent]=function(e)
+				{
+					/*重置数据*/
+					t.lock=false;
+					t.x=[];
+					t.y=[];
+					t.clickDrag=[];
+					clearInterval(t.Timer);
+					t.Timer=null;
+
+				};
+				/*this.revocation.onclick=function()
+				{
+					t.redraw();
+				};*/
+
+//				this.imgurl.onclick=function()
+//				{
+//					t.getUrl();
+//				};
+				/*橡皮擦*/
+				this.changeColor();
+				this.$("eraser").onclick=function(e)
+				{
+				 t.isEraser=true;
+					t.$("error").style.color="red";
+					t.$("error").innerHTML="You are using an eraser!";
+				};
+			},
+			movePoint:function(x,y,dragging)
+			{
+				/*将鼠标坐标添加到各自对应的数组里*/
+				this.x.push(x);
+				this.y.push(y);
+				this.clickDrag.push(y);
+			},
+			drawPoint:function(x,y,radius)
+			{
+				for(var i=0; i < this.x.length; i++)//循环数组
+				{
+					this.cxt.beginPath();//context.beginPath() , 准备绘制一条路径
+
+					if(this.clickDrag[i] && i){//当是拖动而且i!=0时，从上一个点开始画线。
+						this.cxt.moveTo(this.x[i-1], this.y[i-1]);//context.moveTo(x, y) , 新开一个路径，并指定路径的起点
+					}else{
+						this.cxt.moveTo(this.x[i]-1, this.y[i]);
+					}
+					this.cxt.lineTo(this.x[i], this.y[i]);//context.lineTo(x, y) , 将当前点与指定的点用一条笔直的路径连接起来
+					this.cxt.closePath();//context.closePath() , 如果当前路径是打开的则关闭它
+					this.cxt.stroke();//context.stroke() , 绘制当前路径
+				}
+			},
+			clear:function()
+			{
+				this.cxt.clearRect(0, 0, this.w, this.h);//清除画布，左上角为起点
+				$('#crop_result').empty();
+				 $('#resultArea_front').empty();
+				//this.cxt.fillStyle = "#fff";
+			   // this.cxt.fillRect(0, 0, this.w, this.h);
+			},
+			redraw:function()
+			{
+				/*撤销*/
+				this.cxt.restore();
+
+			},
+			preventDefault:function(e){
+				/*阻止默认*/
+				var touch=this.touch ? e.touches[0] : e;
+		  if(this.touch)touch.preventDefault();
+		  else window.event.returnValue = false;
+		 },
+		 changeColor:function()
+		 {
+			 /*为按钮添加事件*/
+			 var t=this,iptNum=this.$("color").getElementsByTagName("input"),fontIptNum=this.$("font").getElementsByTagName("input");
+			 for(var i=0,l=iptNum.length;i<l;i++)
+			 {
+				 iptNum[i].index=i;
+				 iptNum[i].onclick=function()
+				 {
+					 t.cxt.save();
+					 t.cxt.strokeStyle = t.color[this.index];
+					 t.storageColor=t.color[this.index];
+					 t.$("error").style.color="#000";
+					 t.$("error").innerHTML="If there is an error, use an eraser:";
+					 t.cxt.strokeStyle = t.storageColor;
+					 t.isEraser=false;
+				 }
+			 }
+			 for(var i=0,l=fontIptNum.length;i<l;i++)
+			 {
+				 t.cxt.save();
+				 fontIptNum[i].index=i;
+				 fontIptNum[i].onclick=function()
+				 {
+					 t.changeBackground(this.index);
+					 t.cxt.lineWidth = t.fontWeight[this.index];
+					 t.$("error").style.color="#000";
+					 t.$("error").innerHTML="If there is an error, use an eraser:";
+					 t.isEraser=false;
+					 t.cxt.strokeStyle = t.storageColor;
+				 }
+			 }
+		 },
+		 changeBackground:function(num)
+		 {
+			 /*添加画笔粗细的提示背景颜色切换，灰色为当前*/
+			 var fontIptNum=this.$("font").getElementsByTagName("input");
+			 for(var j=0,m=fontIptNum.length;j<m;j++)
+				{
+					fontIptNum[j].className="";
+					if(j==num) fontIptNum[j].className="grea";
+				}
+		 },
+
+			resetEraser:function(_x,_y,touch)
+		 {
+			 /*使用橡皮擦-提醒*/
+			 var t=this;
+				//this.cxt.lineWidth = 30;
+				/*source-over 默认,相交部分由后绘制图形的填充(颜色,渐变,纹理)覆盖,全部浏览器通过*/
+				t.cxt.globalCompositeOperation = "destination-out";
+				t.cxt.beginPath();
+				t.cxt.arc(_x, _y, t.eraserRadius, 0, Math.PI * 2);
+				t.cxt.fillStyle = "rgba(255,255,255,255)";
+				t.cxt.fill();
+				t.cxt.globalCompositeOperation = "source-over"
+
+		 }
+		};
+		paint.init();
+
+	})();}
+
+	$.extend({
+		StandardPost:function(url,args){
+			var form = $("<form method='post'></form>"),
+				input;
+			form.attr({"action":url});
+			$.each(args,function(key,value){
+				input = $("<input type='hidden'>");
+				input.attr({"name":key});
+				input.val(value);
+				form.append(input);
+			});
+			form.submit();
+		}
+	});
+
+</script>
+
+<script>
+
+function CanvasDoodle(canvas) {
+
+this.canvas = canvas;
+
+this.ctx = canvas.getContext('2d');
+
+this.imgSrc = canvas.getAttribute("imgsrc");
+
+this.width = canvas.width;
+
+this.height = canvas.height;
+
+this.left = parseInt(canvas.style.left);
+
+this.top = parseInt(canvas.style.top);
+
+this.touchX = 0;
+
+this.touchY = 0;
+
+this.requireLoop = false;
+
+this.init();
+
+}
+
+CanvasDoodle.prototype = {
+
+init: function() {
+    var touch_event = this.test_ua();
+
+    document.body.setAttribute("needRefresh", "true");
+
+    var _self = this;
+
+    this.img = new Image();
+
+    this.img.src = this.imgSrc;
+
+
+	
+		this.canvas.addEventListener(touch_event['touchstart'],
+    function(e) {
+        var UA = window.navigator.userAgent;
+        if (! (/ipad|iphone|android|mobile/i.test(UA))) {
+            var touchs = e;
+            var posX = touchs.clientX;
+            var posY = touchs.clientY;
+        } else {
+            var touchs = e.changedTouches[0];
+            var posX = touchs.pageX;
+            var posY = touchs.pageY;
+		
+        }
+
+        e.preventDefault();
+
+        _self.requireLoop = true;
+        //_self.touchX = posX - _self.left,
+        //_self.touchY = posY - _self.top;
+        _self.touchX = posX - $("#Furtherimg").offset().left;
+        _self.touchY = posY - $("#Furtherimg").offset().top + $(document).scrollTop();
+        _self.loop();
+
+    },
+    false);
+
+    this.canvas.addEventListener(touch_event['touchmove'],
+    function(e) {
+        var UA = window.navigator.userAgent;
+        if (! (/ipad|iphone|android|mobile/i.test(UA))) {
+            var touchs = e;
+            var posX = touchs.clientX;
+            var posY = touchs.clientY;
+        } else {
+            var touchs = e.changedTouches[0];
+            var posX = touchs.pageX;
+            var posY = touchs.pageY;
+        }
+        e.preventDefault();
+
+        if (_self.requireLoop) {
+
+            //_self.touchX = posX - _self.left;
+            //_self.touchY = posY - _self.top;
+            _self.touchX = posX - $("#Furtherimg").offset().left;
+            _self.touchY = posY - $("#Furtherimg").offset().top + $(document).scrollTop();
+        }
+    },
+    false);
+	
+    this.canvas.addEventListener(touch_event['touchend'],
+    function(e) {
+
+        e.preventDefault();
+
+        _self.requireLoop = false;
+
+    });
+
+	
+},
+test_ua: function() {
+    var touch_event = {
+        touchstart: 'touchstart',
+        touchmove: 'touchmove',
+        touchend: 'touchend',
+
+    }
+
+    var UA = window.navigator.userAgent;
+    if (! (/ipad|iphone|android|mobile/i.test(UA))) {
+        touch_event['touchstart'] = 'mousedown';
+        touch_event['touchmove'] = 'mousemove';
+        touch_event['touchend'] = 'mouseup';
+    }
+
+    return touch_event
+},
+loop: function() {
+
+    if (this.requireLoop) {
+
+        var _self = this;
+        var requestAnimationFrame = window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.requestAnimationFrame;
+        requestAnimationFrame(function() {
+            _self.loop()
+        });
+
+        this.render();
+
+    }
+
+},
+
+render: function() {
+
+    var _self = this;
+
+    _self.ctx.save();
+
+    _self.ctx.beginPath();
+    _self.ctx.arc(_self.touchX, _self.touchY, 2, 0, Math.PI * 2, true);
+
+    _self.ctx.clip();
+
+    _self.ctx.drawImage(_self.img, 0, 0, _self.width, _self.height, 0, 0, _self.width, _self.height);
+
+    _self.ctx.restore();
+
+}
+
+};
+
+
+
+(function(){
+    var paint1={
+        init:function()
+        {
+            this.load();
+        },
+        load:function()
+        {   
+            this.x=[];//记录鼠标移动时的X坐标
+            this.y=[];//记录鼠标移动时的Y坐标
+            this.clickDrag=[];
+            this.lock=false;//鼠标移动前，判断鼠标是否按下
+            this.isEraser=false;
+            //this.Timer=null;//橡皮擦启动计时器
+            //this.radius=5;
+            this.storageColor="#000000";
+            this.eraserRadius=15;//擦除半径值
+            this.color=["#000000","#FF0000","#80FF00","#00FFFF","#808080","#FF8000","#408080","#8000FF","#CCCC00"];//画笔颜色值
+            this.$=function(id){return typeof id=="string"?document.getElementById(id):id;};
+            this.canvas=this.$("myCanvas");
+            if (this.canvas.getContext) {
+            } else {
+                alert("您的浏览器不支持 canvas 标签");
+                return;
+            }
+            this.cxt=this.canvas.getContext('2d');
+            this.cxt.lineJoin = "round";//context.lineJoin - 指定两条线段的连接方式
+            this.cxt.lineWidth = 5;//线条的宽度
+            this.iptClear=this.$("clear");
+            this.revocation=this.$("revocation");
+            this.imgurl=this.$("imgurl");//图片路径按钮
+            this.w=this.canvas.width;//取画布的宽
+            this.h=this.canvas.height;//取画布的高
+           // this.cxt.fillStyle = "#fff";
+           // this.cxt.fillRect(0, 0, this.w, this.h);
+            this.touch =("createTouch" in document);//判定是否为手持设备
+            this.StartEvent = this.touch ? "touchstart" : "mousedown";//支持触摸式使用相应的事件替代
+			 this.MoveEvent = this.touch ? "touchmove" : "mousemove";
+			 this.EndEvent = this.touch ? "touchend" : "mouseup";
+			 this.bind();
+        },
+	change:function()
+		{
+			this.isEraser=true;
+				this.resetEraser();
+		},
+        bind:function()
+        {
+            var t=this;
+
+            /*鼠标按下事件，记录鼠标位置，并绘制，解锁lock，打开mousemove事件*/
+            this.canvas['on'+t.StartEvent]=function(e)
+            {   
+                var touch=t.touch ? e.touches[0] : e; 
+                //var _x=touch.clientX - touch.target.offsetLeft;//鼠标在画布上的x坐标，以画布左上角为起点
+                //var _y=touch.clientY - touch.target.offsetTop + document.body.scrollTop;//鼠标在画布上的y坐标，以画布左上角为起点             
+                var _x=touch.clientX - $("#Furtherimg").offset().left;//鼠标在画布上的x坐标，以画布左上角为起点
+                var _y=touch.clientY - $("#Furtherimg").offset().top + $(document).scrollTop();//鼠标在画布上的y坐标，以画布左上角为起点             
+                if(t.isEraser)
+                {
+                /*
+                    t.cxt.globalCompositeOperation = "destination-out";
+                    t.cxt.beginPath();
+                    t.cxt.arc(_x, _y,t.eraserRadius, 0, Math.PI * 2);
+                    t.cxt.strokeStyle = "rgba(250,250,250,0)";
+                    t.cxt.fill();
+                    t.cxt.globalCompositeOperation = "source-over";
+                    */
+                    t.resetEraser();
+                }else
+                {
+                    t.movePoint(_x,_y);//记录鼠标位置
+                    t.drawPoint();//绘制路线
+                }
+                t.lock=true;
+            };
+            /*鼠标移动事件*/
+            this.canvas['on'+t.MoveEvent]=function(e)
+            {
+                var touch=t.touch ? e.touches[0] : e;
+                if(t.lock)//t.lock为true则执行
+                {
+                    //var _x=touch.clientX - touch.target.offsetLeft;//鼠标在画布上的x坐标，以画布左上角为起点
+                    //var _y=touch.clientY - touch.target.offsetTop + document.body.scrollTop;//鼠标在画布上的y坐标，以画布左上角为起点
+                    var _x=touch.clientX - $("#Furtherimg").offset().left;//鼠标在画布上的x坐标，以画布左上角为起点
+                    var _y=touch.clientY - $("#Furtherimg").offset().top + $(document).scrollTop();//鼠标在画布上的y坐标，以画布左上角为起点
+                    if(t.isEraser)
+                    {
+                        t.resetEraser();
+                    }
+                    else
+                    {
+                        t.movePoint(_x,_y,true);//记录鼠标位置
+                        t.drawPoint();//绘制路线
+                    }
+                }
+            };
+            this.canvas['on'+t.EndEvent]=function(e)
+            {
+                /*重置数据*/
+                t.lock=false;
+                t.x=[];
+                t.y=[];
+                t.clickDrag=[];
+                clearInterval(t.Timer);
+                t.Timer=null;
+                
+            };
+            
+            
+            this.$("Furtherclear").onclick=function(e)
+            {
+                t.isEraser=true;
+            };
+            this.$("Furtherpaint").onclick=function(e)
+            {	
+                t.isEraser=false;
+            };
+            /*
+            this.imgurl.onclick=function()
+            {
+                t.getUrl();
+            };
+            */
+        },
+        movePoint:function(x,y,dragging)
+        {   
+            /*将鼠标坐标添加到各自对应的数组里*/
+            this.x.push(x);
+            this.y.push(y);
+            this.clickDrag.push(y);
+        },
+        drawPoint:function(x,y,radius)
+        {
+            for(var i=0; i < this.x.length; i++)//循环数组
+            {   
+                this.cxt.beginPath();//context.beginPath() , 准备绘制一条路径
+                
+                if(this.clickDrag[i] && i){//当是拖动而且i!=0时，从上一个点开始画线。
+                    this.cxt.moveTo(this.x[i-1], this.y[i-1]);//context.moveTo(x, y) , 新开一个路径，并指定路径的起点
+                }else{
+                    this.cxt.moveTo(this.x[i]-1, this.y[i]);
+                }
+                this.cxt.lineTo(this.x[i], this.y[i]);//context.lineTo(x, y) , 将当前点与指定的点用一条笔直的路径连接起来
+                this.cxt.closePath();//context.closePath() , 如果当前路径是打开的则关闭它
+                this.cxt.stroke();//context.stroke() , 绘制当前路径
+            }
+        },
+        
+        
+        preventDefault:function(e){
+            /*阻止默认*/
+            var touch=this.touch ? e.touches[0] : e;
+            if(this.touch)touch.preventDefault();
+            else window.event.returnValue = false;
+        },
+         
+     changeBackground:function(num)
+     {
+         /*添加画笔粗细的提示背景颜色切换，灰色为当前*/
+         var fontIptNum=this.$("font").getElementsByTagName("input");
+         for(var j=0,m=fontIptNum.length;j<m;j++)
+            {
+                fontIptNum[j].className="";
+                if(j==num) fontIptNum[j].className="grea";
+            }
+     },
+     
+        resetEraser:function()   //橡皮擦
+        {   
+         /*使用橡皮擦-提醒*/
+            new CanvasDoodle(document.getElementById('myCanvas'));
+            
+        } 
+    };
+    
+   $("#Furtherpaint").click(function(){
+		paint1.init();
+	}); 
+
+$("#Furtherclear").click(function(){
+		paint1.change();
+	});
+    
+})();	
+	function getBase64(img) {
+        var canvas = document.createElement("myCanvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        var ext = img.src.substring(img.src.lastIndexOf(".")+1).toLowerCase();
+        var dataURL = canvas.toDataURL("image/"+ext);
+        return dataURL;
+	}
+	
+	function getNow() {
+    		var date = new Date();
+    		var month = date.getMonth() + 1;
+    		var strDate = date.getDate();
+    		if (month >= 1 && month <= 9) {
+        		month = "0" + month;
+    		}
+    		if (strDate >= 0 && strDate <= 9) {
+        		strDate = "0" + strDate;
+    		}
+    		var currentdate = date.getFullYear() + month + strDate + date.getHours() + date.getMinutes() + date.getSeconds() + 'image';
+    		return currentdate;
+	}
+
+
+
+
+
+
+	$("#FurtherDone").click(function(){
+		var base64 = document.getElementById("myCanvas").toDataURL("image/png");
+		base64=base64.split(',')[1];
+		$.ajax({
+			url: '/flaskr2/further',
+			method: 'POST',
+			data: {"value": base64},
+			beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+			},	
+			success: (data) => {
+					$("#myCanvas").attr("imgsrc","");
+					$("#Furtherimg").attr("src","");
+				var RandomID =getNow();
+				$("#crop_result").append("<img title='Click to place the location and size on the background image' src='"+data.result+"' id='"+RandomID +"' style='height:75px;width:75px;margin:10px 10px;'/>");
+					$("#myModal").modal("hide");
+					
+					$("#"+RandomID).click(function () {
+						var node = new JTopo.Node();    // ▒~H~[建▒~@个▒~J~B▒~B▒
+						node.setLocation(50,50);    // 设置▒~J~B▒~B▒▒~]~P▒| ~G
+						node.setSize(50, 50);
+						var imgURL = document.getElementById(RandomID).src;
+						node.setImage(imgURL);
+						(window.scene).add(node); // ▒~T▒▒~E▒▒~H▒▒~\▒▒~Y▒中
+						$("#"+RandomID).unbind("click");
+					});
+			},
+			 error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }
+		
+		});
+		
+	});
+	
+	
+	
+</script> 
+
+
+
+<script type="text/javascript">
+	var cropimg;
+	var backimg;
+	var oID;
+	var exceptionId;
+	var divid;
+	function getNowFormatDate() {
+		var date = new Date();
+		var month = date.getMonth() + 1;
+		var strDate = date.getDate();
+		if (month >= 1 && month <= 9) {
+			month = "0" + month;
+		}
+		if (strDate >= 0 && strDate <= 9) {
+			strDate = "0" + strDate;
+		}
+		var currentdate = date.getFullYear()  + month  + strDate + " " + date.getHours()  + date.getMinutes() + date.getSeconds();
+		return currentdate;
+	}
+	function ExceptionId() {
+                var date = new Date();
+                var month = date.getMonth() + 1;
+                var strDate = date.getDate();
+                if (month >= 1 && month <= 9) {
+                        month = "0" + month;
+                }
+                if (strDate >= 0 && strDate <= 9) {
+                        strDate = "0" + strDate;
+                }
+                var currentdate = date.getFullYear()  + month  + strDate + date.getHours()  + date.getMinutes() + date.getSeconds() + "id";
+                return currentdate;
+        }
+
+	function DivId() {
+                var date = new Date();
+                var month = date.getMonth() + 1;
+                var strDate = date.getDate();
+                if (month >= 1 && month <= 9) {
+                        month = "0" + month;
+                }
+                if (strDate >= 0 && strDate <= 9) {
+                        strDate = "0" + strDate;
+                }
+                var currentdate = date.getFullYear()  + month  + strDate + date.getHours()  + date.getMinutes() + date.getSeconds() + "div";
+                return currentdate;
+        }
+	
+	function showlocal(){  //本地上传 动态显示
+		exceptionId = ExceptionId();
+		$('#resultArea_front').empty();	
+		var htmllocal = "<h4 id=" + exceptionId + ">background:</h4><img title='click this to change background image' onclick = 'upload_local(this)' width='300px' height='300px' style='display:block;margin:0 auto;' id='imgPre' src=''>";
+		$("#resultArea_front").append(htmllocal);
+	}
+	
+	function printB(obj){  //草图搜索方式前景图 onmousedown事件 传递到裁剪框
+		cropimg =  obj[0].src;
+	}	
+
+	function showlocalA(){  //▒~\▒▒~\▒▒~J▒|  ▒~J▒▒~@~A▒~X▒示
+		exceptionId = ExceptionId();
+		oID = getNowFormatDate();
+		divid = DivId();
+                var htmllocal1 = "<h4 id=" + exceptionId + ">object:</h4><div id="+divid+" onmousedown='printB(this.childNodes)' class='avatar-view' data-toggle='modal' data-target='#avatar-modal'><img title='click this to crop the image' style='display:block;margin:0 auto;' id='" + oID + "' src=''></div>";
+			$("#resultArea_front").append(htmllocal1);
+	
+        }
+
+	
+	function getFileUrl(sourceId) {  //本地上传
+		var url;
+		if (navigator.userAgent.indexOf("MSIE")>=1) { // IE
+			url = document.getElementById(sourceId).value;
+		} else if(navigator.userAgent.indexOf("Firefox")>0) { // Firefox
+			url = window.URL.createObjectURL(document.getElementById(sourceId).files.item(0));
+		} else if(navigator.userAgent.indexOf("Chrome")>0) { // Chrome
+			url = window.URL.createObjectURL(document.getElementById(sourceId).files.item(0));
+		}
+		return url;
+	}
+
+	function preImg(sourceId, targetId) {
+		if($("#"+sourceId).val()==""){
+			$("#"+exceptionId).remove();
+			$("#"+targetId).remove();
+			$("#"+divid).remove();
+			return;
+		}
+		var url = getFileUrl(sourceId);	
+		var imgPre = document.getElementById(targetId);
+		imgPre.src = url;
+	}
+	
+	function printA(obj){  //草图搜索方式前景图 onmousedown事件 传递到裁剪框
+		cropimg =  obj[0].id;
+	}
+
+	
+	
+	
+	var canvas = document.getElementById("canvas");
+	var cxt = canvas.getContext("2d");
+	var width = canvas.width;
+	var height = canvas.height;
+	var img = new Image();
+	cxt.lineWidth = 1;
+	cxt.strokeStyle = "#000000";
+	var count;
+	var imgs = new Array();
+	var num = 0;
+	var i_height;
+	var i_width;
+	var scale = 1;
+	var canvas2 = document.getElementById("canvas2");
+	var stage = new JTopo.Stage(canvas2);
+	stage.mode = "edit";
+
+
+
+	function upload_local(obj){     //本地上传方式（还需要修改），点击图片即覆盖画布
+		/*
+		cxt.clearRect(0, 0, this.w, this.h);//清除画布，左上角为起点
+		
+		var canvas = document.getElementById("canvas");
+		var stage = new JTopo.Stage(canvas);
+		stage.mode = "edit";
+		scene = new JTopo.Scene(stage);
+		scene.mode = "edit";
+		*/
+		$("#canvas").css("display", "none");
+		var canvas2= document.getElementById("canvas2");
+		$(canvas2).css("display", "block");
+	//	var stage = new JTopo.Stage(canvas2);
+	//	stage.mode = "edit";
+		scene = new JTopo.Scene(stage);
+		scene.mode = "edit";		
+
+	
+		img.src = obj.src;
+		i_height = img.height;
+		i_width = img.width;
+		canvas2.height = i_height;
+		canvas2.width = i_width;
+		scene.background = img.src;
+		backimg = obj.src;//原图公网地址
+		if(document.getElementById("combine")){
+			$("#combine").remove();
+		}	
+		$(".jumbotron").append("<button style='margin-top:20px;margin-left:350px' class='btn btn-primary' id = 'combine' onclick='complete();'>combine</button>");	
+	}
+	
+	
+	
+	function convertURL(obj){       //文本搜索方式（还需要修改），点击图片 下载 即覆盖画布
+		/*
+		cxt.clearRect(0, 0, this.w, this.h);//清除画布，左上角为起点
+		var stage = new JTopo.Stage(canvas);
+		stage.mode = "edit";
+		scene = new JTopo.Scene(stage);
+		scene.mode = "edit";
+		*/
+		$("#canvas").css("display", "none");
+		var canvas2= document.getElementById("canvas2");
+		$(canvas2).css("display", "block");
+	//	var stage = new JTopo.Stage(canvas2);
+	//	stage.mode = "edit";
+		scene = new JTopo.Scene(stage);
+		scene.mode = "edit";
+
+	//	$(obj).unbind("click");
+
+		$.ajax({
+					url: '/flaskr2/result3',
+					method: 'POST',
+					//async: false,
+					//    contentType:"charset=utf-8",
+					data: {"value": obj.id},
+					beforeSend: function (){
+					$("#loadingA").css("top",$(document).scrollTop()+'px');
+						$(".loading").show();
+			
+					//	$("#load").fakeLoader({
+					//		timeToHide: 1000*2,
+					//		spinner: "spinner6",
+					//		zIndex: 999
+		
+					//	});
+					},
+					success: function(data) {
+						backimg = data.result;
+						var pattern  = '/flaskr2';
+						backimg = backimg.replace(new RegExp(pattern), "");
+						img.src = backimg;
+						img.onerror= function(){
+							alert("The original image is missing,please select the other images");
+						}
+						img.onload = function(){
+							/*	
+							canvas2.height = img.height;
+							canvas2.width = img.width;
+							scene.background = img.src;
+							
+							*/
+							if(img.height<img.width)
+							{
+								canvas2.height =img.height*canvas2.width/img.width;
+								scale = img.width/canvas2.width;
+								 scene.background = img.src;
+							}
+							else{
+								canvas2.width = img.width*canvas2.height/img.height;
+								scale = img.height/canavas2.height;
+								scene.background = img.src;
+							}
+							if(document.getElementById("combine")){
+								$("#combine").remove();
+							}
+							$(".jumbotron").append("<button class='btn btn-primary' id = 'combine' style='margin-top:20px;margin-left:350px' onclick='complete();'>combine</button>");
+						}	
+                                                
+	
+						
+					},
+					error: function (XMLHttpRequest, textStatus, errorThrown) {
+						alert(errorThrown);
+					},
+					complete: function (){
+					$("#loadingA").css("top",0);
+						$(".loading").hide();
+
+					}		
+		});	
+	
+	}
+	
+
+
+
+
+
+
+	function upload_back(obj){
+			/*
+			cxt.clearRect(0, 0, this.w, this.h);//清除画布，左上角为起点
+			var stage = new JTopo.Stage(canvas);
+                	stage.mode = "edit";
+               		scene = new JTopo.Scene(stage);
+                	scene.mode = "edit";
+			*/
+
+			$("#canvas").css("display", "none");
+			var canvas2= document.getElementById("canvas2");
+			$(canvas2).css("display", "block");
+			var stage = new JTopo.Stage(canvas2);
+			stage.mode = "edit";
+			scene = new JTopo.Scene(stage);
+			scene.mode = "edit";
+
+			img.src = obj.id;
+			i_height = obj.height;
+			i_width = obj.width;
+			canvas.height = i_height;
+			canvas.width = i_width;
+			scene.background = img.src;	
+			backimg = obj.id;
+			stage.saveImageInfo();
+			$(".jumbotron").append("<button class='btn btn-primary' id = 'combine' onclick='complete();'>combine</button>");	
+	}
+
+	function getBase64Image(img) {
+        var canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        var ext = img.src.substring(img.src.lastIndexOf(".")+1).toLowerCase();
+        var dataURL = canvas.toDataURL("image/"+ext);
+        return dataURL;
+	}
+
+
+
+	function complete(){     //融合代码
+		var point = new Array();
+		var base64;
+					$('#combineImg').empty();
+		var image = new Image();
+		image.src =  backimg;
+		image.onload = function(){
+			var base = getBase64Image(image);
+			base64 = base.split(',')[1];
+			var nodesList = (window.scene).getDisplayedNodes();
+			point.splice(0,point.length);//清空数组
+			for(var i = 0;i < nodesList.length;i++){
+				var obj = nodesList[i];
+				var id = (obj.imagesrc).split("/img/")[1].split("matting")[0];
+				var x = obj.x*scale;
+				var y = obj.y*scale;
+				var o_width = obj.width*scale;
+				var o_height = obj.height*scale;
+				var info = {
+					x1: x,
+					y: y,
+					width: o_width,
+					id:id,
+					height: o_height,
+					rotate: 0
+				}
+				point.push(info);
+			}
+			var json ={
+				"value":base64,
+				"imagedata":point
+			};
+			$.ajax({
+				url: '/flaskr2/getimgdata',
+				method: 'POST',
+				data:json,
+				dataType: 'json',
+				beforeSend: function (){
+					$("#loadingA").css("top",$(document).scrollTop()+'px');
+                                        $("#loadingA").fadeIn();
+                
+                                },
+				success: function (data) {
+					//		scene.background = data.result;
+					$("#combineImg").append("<img src='"+data.result+"' style='width:"+document.getElementById("canvas2").width+"px;height:"+document.getElementById("canvas2").height+"px;'/>");
+				},
+				complete: function (){
+					$("#loadingA").css("top",0);
+                                        $("#loadingA").fadeOut();
+                                }, 
+				error: function (XMLHttpRequest, textStatus, errorThrown){
+					alert(errorThrown);
+				},
+
+			});
+		}
+
+    }
+
+
+
+
+  var characterList = new Array();
+  $("#clear").click(function () {
+    canvas.height = canvas.height;
+    characterList.splice(0,characterList.length);//清空数组
+    num = 0;
+  });
+
+  //获得每一个矩形的图片数据
+  $("#getImgs").click(function () {
+    var url = '/flaskr2/draftResult';
+    var URL = "/flaskr2/result2";
+    switch (num + ""){
+      case "0":
+        var character = {
+          "queryexpression": characterList
+        };
+           $.ajax({url:URL, method:'POST',data:character,dataType:'json',
+                 beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+                        },
+                success:function (data) {
+
+
+			if(data.result.length!=0){//背景图
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>background:</h4>";
+					for(var i = 0; i < (data.result[j].length/2); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						var image = data.result[j][i+(data.result[j].length/2)]; //缩略图
+						var image1 = data.result[j][i];      //原图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><img title='click this to change background image' onclick = 'convertURL(this)' style='width:80px;height:80px' id='"+image1+"' src='" + image + "'></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+			if(data.result1.length!=0){//前景图
+				for(j=0;j < data.result1.length;j++){
+					var html1 = "<table style='width: 960px;margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result1[j].length/2); i++){ 
+						//window.alert("success");
+						
+						if (i % 10 == 0)    
+							html1 += "<tr>";    
+						var image = data.result1[j][i+(data.result1[j].length/2)];   //缩略图
+						var image1 = data.result1[j][i];      //原图
+						html1 += "<td style='width: 80px;height:80px; border: 1px solid black;'><div onmousedown='printA(this.childNodes)' class='avatar-view' data-toggle='modal' data-target='#avatar-modal'><img id='"+image1+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html1 += "</tr>";    
+					}    
+					html1 += "</table>";    
+				//	$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html1);
+				}
+			
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }		   
+        });
+        break;
+
+      case "1":
+        var img = saveImgs(50, 50 ,120, 200);
+        img = img.split(",")[1];
+        imgs.splice(0,imgs.length);//清空数组
+        imgs.push(img);
+        var json = {
+            "value": imgs
+        };
+        var character = {
+            "queryexpression": characterList
+        };
+//        json = JSON.stringify(json);
+			
+$.ajax({url:url, method:'POST',data:json,dataType:'json',
+                beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+                        },
+                success:function (data) {
+
+		if(data.result.length!=0){    //草图结果
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result[j].length); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						
+						var image = "./static/Imgs/"+data.result[j][i];      //结果图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><div onmousedown='printA(this.childNodes)' class='avatar-view' data-toggle='modal' data-target='#avatar-modal'><img id='"+image+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+		},
+        });
+			
+		 $.ajax({url:URL, method:'POST',data:character,dataType:'json',
+                 beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+                        },
+                success:function (data) {
+
+		if(data.result.length!=0){//背景图
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>background:</h4>";
+					for(var i = 0; i < (data.result[j].length/2); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						var image = data.result[j][i+(data.result[j].length/2)]; //缩略图
+						var image1 = data.result[j][i];      //原图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><img title='click this to change background image' onclick = 'convertURL(this)' style='width:80px;height:80px' id='"+image1+"' src='" + image + "'></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+			if(data.result1.length!=0){//前景图
+				for(j=0;j < data.result1.length;j++){
+					var html1 = "<table style='width: 960px; margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result1[j].length/2); i++){ 
+						//window.alert("success");
+						
+						if (i % 10 == 0)    
+							html1 += "<tr>";    
+						var image = data.result1[j][i+(data.result1[j].length/2)];   //缩略图
+						var image1 = data.result1[j][i];      //原图
+						html1 += "<td style='width: 80px;height:80px; border: 1px solid black;'><div class='avatar-view' onmousedown='printA(this.childNodes)' data-toggle='modal' data-target='#avatar-modal'><img id='"+image1+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html1 += "</tr>";    
+					}    
+					html1 += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html1);
+				}
+			
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }
+        });
+        break;
+
+      case "2":
+        var img1 = saveImgs(50, 50 ,120, 200);
+        var img2 = saveImgs(190, 50 ,120, 200);
+        imgs.splice(0,imgs.length);//清空数组
+        img1 = img1.split(",")[1];
+        img2 = img2.split(",")[1];
+        imgs.push(img1);
+        imgs.push(img2);
+        var json = {
+          "value": imgs
+        };
+        var character = {
+          "queryexpression": characterList
+        };
+//        json = JSON.stringify(json);
+        $.ajax({url:url, method:'POST',data:json,dataType:'json',
+		beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+			},	
+		success:function (data) {
+        	if(data.result.length!=0){    //草图结果
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result[j].length); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						
+						var image = "./static/Imgs/"+data.result[j][i];      //结果图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><div class='avatar-view'  onmousedown='printA(this.childNodes)' data-toggle='modal' data-target='#avatar-modal'><img id='"+image+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }
+        });
+        $.ajax({url:URL, method:'POST',data:character,dataType:'json',
+		 beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+                        },
+                success:function (data) {
+        	if(data.result.length!=0){//背景图
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>background:</h4>";
+					for(var i = 0; i < (data.result[j].length/2); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						var image = data.result[j][i+(data.result[j].length/2)]; //缩略图
+						var image1 = data.result[j][i];      //原图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><img title='click this to change background image' onclick = 'convertURL(this)' style='width:80px;height:80px' id='"+image1+"' src='" + image + "'></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+			if(data.result1.length!=0){//前景图
+				for(j=0;j < data.result1.length;j++){
+					var html1 = "<table style='width: 960px;margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result1[j].length/2); i++){ 
+						//window.alert("success");
+						
+						if (i % 10 == 0)    
+							html1 += "<tr>";    
+						var image = data.result1[j][i+(data.result1[j].length/2)];   //缩略图
+						var image1 = data.result1[j][i];      //原图
+						html1 += "<td style='width: 80px;height:80px; border: 1px solid black;'><div class='avatar-view' onmousedown='printA(this.childNodes)' data-toggle='modal' data-target='#avatar-modal'><img id='"+image1+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html1 += "</tr>";    
+					}    
+					html1 += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html1);
+				}
+			
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }
+        });
+        break;
+
+      case "3":
+        var img1 = saveImgs(50, 50 ,120, 200);
+        var img2 = saveImgs(190, 50 ,120, 200);
+        var img3 = saveImgs(330, 50 ,120, 200);
+        imgs.splice(0,imgs.length);//清空数组
+        img1 = img1.split(",")[1];
+        img2 = img2.split(",")[1];
+        img3 = img3.split(",")[1];
+        imgs.push(img1);
+        imgs.push(img2);
+        imgs.push(img3);
+        var json = {
+          "value": imgs
+        };
+        var character = {
+          "queryexpression": characterList
+        };
+//        json = JSON.stringify(json);
+			
+        $.ajax({url:url, method:'POST',data:json,dataType:'json',
+                beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+                        },
+                success:function (data) {
+              
+
+		if(data.result.length!=0){    //草图结果
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result[j].length); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						
+						var image = "./static/Imgs/"+data.result[j][i];      //结果图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><div class='avatar-view' onmousedown='printA(this.childNodes)' data-toggle='modal' data-target='#avatar-modal'><img id='"+image+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }
+		
+        });
+			
+	 $.ajax({url:URL, method:'POST',data:character,dataType:'json',
+                 beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+                        },
+                success:function (data) {
+
+		if(data.result.length!=0){//背景图
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>background:</h4>";
+					for(var i = 0; i < (data.result[j].length/2); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						var image = data.result[j][i+(data.result[j].length/2)]; //缩略图
+						var image1 = data.result[j][i];      //原图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><img title='click this to change background image' onclick = 'convertURL(this)' style='width:80px;height:80px' id='"+image1+"' src='" + image + "'></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+				//	$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+			if(data.result1.length!=0){//前景图
+				for(j=0;j < data.result1.length;j++){
+					var html1 = "<table style='width: 960px;margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result1[j].length/2); i++){ 
+						//window.alert("success");
+						
+						if (i % 10 == 0)    
+							html1 += "<tr>";    
+						var image = data.result1[j][i+(data.result1[j].length/2)];   //缩略图
+						var image1 = data.result1[j][i];      //原图
+						html1 += "<td style='width: 80px;height:80px; border: 1px solid black;'><div class='avatar-view' onmousedown='printA(this.childNodes)' data-toggle='modal' data-target='#avatar-modal'><img id='"+image1+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html1 += "</tr>";    
+					}    
+					html1 += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html1);
+				}
+			
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }
+        });
+        break;
+
+      case "4":
+        var img1 = saveImgs(50, 50 ,120, 200);
+        var img2 = saveImgs(190, 50 ,120, 200);
+        var img3 = saveImgs(330, 50 ,120, 200);
+        var img4 = saveImgs(470, 50 ,120, 200);
+        imgs.splice(0,imgs.length);//清空数组
+        img1 = img1.split(",")[1];
+        img2 = img2.split(",")[1];
+        img3 = img3.split(",")[1];
+        img4 = img4.split(",")[1];
+        imgs.push(img1);
+        imgs.push(img2);
+        imgs.push(img3);
+        imgs.push(img4);
+        var json = {
+          "value": imgs
+        };
+        var character = {
+          "queryexpression": characterList
+        };
+//        json = JSON.stringify(json);
+		$.ajax({url:url, method:'POST',data:json,dataType:'json',
+                beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+                        },
+                success:function (data) {
+	
+		if(data.result.length!=0){    //草图结果
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result[j].length); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						
+						var image = "./static/Imgs/"+data.result[j][i];      //结果图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><div class='avatar-view' onmousedown='printA(this.childNodes)' data-toggle='modal' data-target='#avatar-modal'><img id='"+image+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }
+        });
+			
+	$.ajax({url:URL, method:'POST',data:character,dataType:'json',
+                 beforeSend: function (){
+                                $("#loadingA").css("top",$(document).scrollTop()+'px');
+                                $("#loadingA").show();
+                        },
+                success:function (data) {
+
+		if(data.result.length!=0){//背景图
+				for(j=0;j < data.result.length;j++){
+					var html = "<table style='width: 960px; margin:20px auto;'><h4>background:</h4>";
+					for(var i = 0; i < (data.result[j].length/2); i++){ 
+						//window.alert("success");
+						if (i % 10 == 0)    
+							html += "<tr>";    
+						var image = data.result[j][i+(data.result[j].length/2)]; //缩略图
+						var image1 = data.result[j][i];      //原图
+						html += "<td style='width: 80px;height:80px; border: 1px solid black;'><img title='click this to change background image' onclick = 'convertURL(this)' style='width:80px;height:80px' id='"+image1+"' src='" + image + "'></td>"
+						if (i % 10 == 9)    
+							html += "</tr>";    
+					}    
+					html += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html);
+				
+				}
+			}
+			if(data.result1.length!=0){//前景图
+				for(j=0;j < data.result1.length;j++){
+					var html1 = "<table style='width: 960px;margin:20px auto;'><h4>object:</h4>";
+					for(var i = 0; i < (data.result1[j].length/2); i++){ 
+						//window.alert("success");
+						
+						if (i % 10 == 0)    
+							html1 += "<tr>";    
+						var image = data.result1[j][i+(data.result1[j].length/2)];   //缩略图
+						var image1 = data.result1[j][i];      //原图
+						html1 += "<td style='width: 80px;height:80px; border: 1px solid black;'><div class='avatar-view' onmousedown='printA(this.childNodes)' data-toggle='modal' data-target='#avatar-modal'><img id='"+image1+"' src='" + image + "'></div></td>"
+						if (i % 10 == 9)    
+							html1 += "</tr>";    
+					}    
+					html1 += "</table>";    
+					//$("table:eq(0)").remove();    
+					$("#resultArea_front").append(html1);
+				}
+			
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert(errorThrown);
+                                        },
+
+			complete: function (){
+                                        $("#loadingA").css("top",0);
+                                        $("#loadingA").hide();
+                        }
+        });
+        break;
+
+      default:
+        break;
+    }
+  });
+
+
+  function saveImgs(x, y, width, height) {
+    var canvas2 = document.getElementById("canvas3");
+    var context = canvas2.getContext("2d");
+    var imgData = cxt.getImageData(x+1, y+1, width-2, height-2);
+    context.putImageData(imgData, 0, 0);
+    var img = canvas2.toDataURL();
+    return img;
+  }
+
+    var loc;
+    var choice;
+    canvas.addEventListener("dblclick",function (e) {
+      loc = windowToCanvas(canvas, e.x, e.y);
+      choice = $("input:radio:checked").val();
+      $("#inputArea").css({
+        top:e.pageY,
+        left:e.pageX,
+        z: 999,
+      }).show();
+  });
+
+
+  function windowToCanvas(canvas, x, y) {
+    var bbox = canvas.getBoundingClientRect();
+    return {
+        x: x - bbox.left * (canvas.width / bbox.width),
+        y: y - bbox.top * (canvas.width / bbox.width)
+    };
+  }
+
+  $("#add").click(function () {
+      draw();
+	num++;
+      if (num <= 4){
+          switch (num){
+            case 1:
+//                canvas.height = canvas.height;
+                cxt.strokeRect(50, 50 ,120, 200);
+                break;
+            case 2:
+//                canvas.height = canvas.height;
+//                cxt.strokeRect(50, 50 ,120, 200);
+                cxt.strokeRect(190, 50 ,120, 200);
+                break;
+            case 3:
+//                canvas.height = canvas.height;
+//                cxt.strokeRect(50, 50 ,120, 200);
+//                cxt.strokeRect(190, 50 ,120, 200);
+                cxt.strokeRect(330, 50 ,120, 200);
+                break;
+            case 4:
+//                canvas.height = canvas.height;
+//                cxt.strokeRect(50, 50 ,120, 200);
+//                cxt.strokeRect(190, 50 ,120, 200);
+//                cxt.strokeRect(330, 50 ,120, 200);
+                cxt.strokeRect(470, 50 ,120, 200);
+                break;
+            default:
+                break;
+          }
+      }
+  });
+
+  $("#input").blur(function () {
+    var text = $("#input").val();
+      var ch = {};
+      ch[choice] = text;
+      characterList.push(ch);
+      cxt.fillText(text, loc.x, loc.y);
+      $("#inputArea").hide();
+      $("#input").val("");
+  });
+	$("input[type=radio]").change(function () {
+    if(this.value == "background"){
+        $("#backgroundArea").show();
+        $("#goodArea").hide();
+    }
+    if(this.value == "good"){
+        $("#backgroundArea").hide();
+        $("#goodArea").show();
+    }
+  });
+</script>
+</body>
+</html>
+
